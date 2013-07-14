@@ -30,6 +30,8 @@
     // once everything is loaded, we run our Three.js stuff.
     $(function () {
 
+        var stopMovingLight = false;
+
         var stats = initStats();
 
         // create a scene, that will hold all our elements such as objects, cameras and lights.
@@ -158,6 +160,7 @@
             this.castShadow=true;
             this.onlyShadow=false;
             this.target="Plane";
+            this.stopMovingLight=false;
 
         }
 
@@ -168,6 +171,10 @@
 
         gui.addColor(controls, 'pointColor').onChange(function(e) {
             spotLight.color = new THREE.Color(e);
+        });
+
+        gui.add(controls, 'angle',0,Math.PI * 2).onChange(function(e) {
+            spotLight.angle = e;
         });
 
         gui.add(controls, 'intensity',0,5).onChange(function(e) {
@@ -210,6 +217,10 @@
 
         });
 
+        gui.add(controls, 'stopMovingLight').onChange(function(e) {
+            stopMovingLight = e;
+        });
+
 
         render();
 
@@ -226,21 +237,23 @@
             sphere.position.y = 2 +( 10*Math.abs(Math.sin(step)));
 
             // move the light simulation
-            if (phase > 2*Math.PI) {
-                invert = invert*-1;
-                phase-=2*Math.PI;
-            } else {
-                phase+=controls.rotationSpeed;
-            }
-            sphereLightMesh.position.z = +(7*(Math.sin(phase)));
-            sphereLightMesh.position.x = +(14*(Math.cos(phase)));
+            if (!stopMovingLight) {
+                if (phase > 2*Math.PI) {
+                    invert = invert*-1;
+                    phase-=2*Math.PI;
+                } else {
+                    phase+=controls.rotationSpeed;
+                }
+                sphereLightMesh.position.z = +(7*(Math.sin(phase)));
+                sphereLightMesh.position.x = +(14*(Math.cos(phase)));
 
-            if (invert<0) {
-                var pivot = 14;
-                sphereLightMesh.position.x = (invert*(sphereLightMesh.position.x-pivot))+pivot;
-            }
+                if (invert<0) {
+                    var pivot = 14;
+                    sphereLightMesh.position.x = (invert*(sphereLightMesh.position.x-pivot))+pivot;
+                }
 
-            spotLight.position = sphereLightMesh.position;
+                spotLight.position = sphereLightMesh.position;
+            }
 
             // render using requestAnimationFrame
             requestAnimationFrame(render);
